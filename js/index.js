@@ -10,6 +10,8 @@ function handleSearch(e) {
         fetch(`https://api.github.com/search/users?q=${input.value}`)
         .then(res => res.json())
         .then(userData => {
+            const existingCards = Array.from(document.querySelector('#user-list').children)
+            existingCards.map(card => card.remove())
             const li = document.createElement('li')
             li.textContent = 'Click on a user to view a list of their repositories'
             li.style.margin = '10px'
@@ -29,7 +31,7 @@ function handleData(userData) {
     li.appendChild(username)
     const link = document.createElement('a')
     link.href = userData.html_url
-    link.textContent = `Check out ${username.textContent}'s profile`
+    link.textContent = `Check out ${username.textContent}'s profile on GitHub`
     li.appendChild(link)
     li.className = `${username.textContent}-card`
     styleUser(li)
@@ -47,7 +49,30 @@ function styleUser(user) {
 function listRepos(listClass, target) {
     const li = document.querySelector(`.${listClass}`)
     if ((target === li.querySelector('a') || target === li.querySelector('button')) === false) {
-        
+        const ul = document.createElement('ul')
+        li.appendChild(ul)
+        const username = listClass.slice(0, listClass.length - 5)
+        fetch(`https://api.github.com/users/${username}/repos`)
+        .then(res => res.json())
+        .then(repos => {
+            const ul = document.querySelector(`.${repos[0].owner.login}-card`).querySelector('ul')
+            const li = document.createElement('li')
+            const h4 = document.createElement('h4')
+            h4.textContent = `${repos[0].owner.login}'s repositories`
+            li.appendChild(h4)
+            li.style.margin = '20px'
+            ul.appendChild(li)
+            repos.map(repo => {
+                const ul = document.querySelector(`.${repo.owner.login}-card`).querySelector('ul')
+                const li = document.createElement('li')
+                li.style.margin = '5px'
+                ul.appendChild(li)
+                const a = document.createElement('a')
+                a.href = repo.html_url
+                repo.description === null ? a.textContent = repo.html_url : a.textContent = repo.description
+                li.appendChild(a)
+        })
+    })
     }
 }
 console.log('hey')
